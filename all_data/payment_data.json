@@ -1,0 +1,53 @@
+[
+  {
+    "model": "users.payments",
+    "pk": 1,
+    "fields": {
+      "user": 4,
+      "date": "2024-07-06",
+      "payments_summ": 100,
+      "payment_method": "карта",
+      "course": [
+        4,
+        5
+      ],
+      "lesson": [
+        2
+      ]
+    }
+  },
+  {
+    "model": "users.payments",
+    "pk": 2,
+    "fields": {
+      "user": 12,
+      "date": "2024-07-06",
+      "payments_summ": 0,
+      "payment_method": "карта",
+      "course": [
+        6,
+        4,
+        5
+      ],
+      "lesson": [
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "model": "users.payments",
+    "pk": 3,
+    "fields": {
+      "user": 12,
+      "date": "2024-07-05",
+      "payments_summ": 1,
+      "payment_method": "карта",
+      "course": [
+        6
+      ],
+      "lesson": []
+    }
+  }
+]

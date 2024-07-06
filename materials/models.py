@@ -7,7 +7,7 @@ null_options = {'blank': True, 'null': True}
 
 class Course(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
-    preview = models.ImageField(upload_to='materials/materials_preview', verbose_name='Изображение')
+    preview = models.ImageField(upload_to='materials/materials_preview', verbose_name='Изображение', **null_options)
     description = models.TextField(verbose_name='Описание', **null_options)
 
     class Meta:
