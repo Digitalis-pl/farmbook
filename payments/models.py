@@ -22,3 +22,8 @@ class Payments(models.Model):
 
     def __str__(self):
         return f'{self.user} - {self.payments_summ} - {self.date} - {self.course} - {self.lesson}'
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name='Клиент', **null_options)
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, verbose_name='оплаченный курс',  **null_options)
