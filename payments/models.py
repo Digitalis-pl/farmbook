@@ -27,3 +27,10 @@ class Payments(models.Model):
 class Subscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name='Клиент', **null_options)
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, verbose_name='оплаченный курс',  **null_options)
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return f'{self.user} - {self.course}'
