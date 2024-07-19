@@ -8,7 +8,7 @@ from users.models import User
 
 from materials.models import Course, Lessons
 
-from payments.models import Subscription
+from payments.models import Subscription, Payments
 
 
 # Create your tests here.
@@ -191,6 +191,164 @@ class LessonTestCase(APITestCase):
                 }
             ]
         }
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+        self.assertEqual(
+            data, result
+        )
+
+
+class UserTestCase(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(email="test@mail.ru")
+        # self.course = Course.objects.create(name="c_test", owner=self.user)
+        # self.lesson = Lessons.objects.create(name="l_test", owner=self.user)
+        self.client.force_authenticate(user=self.user)
+
+    def test_user_retrieve(self):
+        url = reverse('users:user_detail', args=(self.user.pk,))
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+        self.assertEqual(
+            data.get("email"), self.user.email
+        )
+
+    def test_user_create(self):
+        url = reverse('users:user_create')
+        data = {
+            "email": "test1@mail.ru",
+            "password": "test"
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED
+        )
+        self.assertEqual(
+            User.objects.all().count(), 2
+        )
+
+    def test_user_update(self):
+        url = reverse('users:user_update', args=(self.user.pk,))
+        data = {
+            "name": "test2"
+        }
+        response = self.client.patch(url, data)
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+        self.assertEqual(
+            data.get("name"), "test2"
+        )
+
+    def test_user_delete(self):
+        url = reverse('users:user_delete', args=(self.user.pk,))
+        response = self.client.delete(url)
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT
+        )
+        self.assertEqual(
+            User.objects.all().count(), 0
+        )
+
+    def test_user_list(self):
+        url = reverse('users:user_list')
+        response = self.client.get(url)
+        data = response.json()
+        result = [
+            {
+                "first_name": "",
+                "email": self.user.email,
+                "city": None
+            }
+        ]
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+        self.assertEqual(
+            data, result
+        )
+
+
+class PaymentTestCase(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(email="test@mail.ru")
+        self.course = Course.objects.create(name="test", owner=self.user)
+        self.payment = Payments.objects.create(payments_summ=100, payment_method="card")
+        self.client.force_authenticate(user=self.user)
+
+    def test_payment_retrieve(self):
+        url = reverse('payments:payments-detail', args=(self.payment.pk,))
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+        self.assertEqual(
+            data.get("payments_summ"), 100
+        )
+
+    def test_payment_create(self):
+        url = reverse('payments:payments-list')
+        data = {
+            "user": self.user.pk,
+            "course": self.course.pk,
+            "payments_summ": 100,
+            "payment_method": "card"
+        }
+        response = self.client.post(url, data)
+        print(response.json())
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED
+        )
+        self.assertEqual(
+            Payments.objects.all().count(), 2
+        )
+
+    def test_payment_update(self):
+        url = reverse('payments:payments-detail', args=(self.payment.pk,))
+        data = {
+            "payments_summ": 3,
+            "user": self.user.pk
+        }
+        response = self.client.patch(url, data)
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+        self.assertEqual(
+            data.get("payments_summ"), 3
+        )
+
+    def test_payment_delete(self):
+        url = reverse('payments:payments-detail', args=(self.payment.pk,))
+        response = self.client.delete(url)
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT
+        )
+        self.assertEqual(
+            Payments.objects.all().count(), 0
+        )
+
+    def test_payment_list(self):
+        url = reverse('payments:payments-list')
+        response = self.client.get(url)
+        data = response.json()
+        result = [
+            {
+                "id": self.payment.pk,
+                "date": None,
+                "payments_summ": 100,
+                "payment_method": "card",
+                "user": None,
+                "course": [],
+                "lesson": []
+            }
+        ]
         self.assertEqual(
             response.status_code, status.HTTP_200_OK
         )
