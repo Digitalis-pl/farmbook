@@ -1,16 +1,17 @@
 from rest_framework import serializers
 
 from materials.models import Course, Lessons
-from materials.validators import link_validate
+from materials.validators import LinkValidator #link_validate
 from payments.models import Subscription
 
 
 class LessonSerializer(serializers.ModelSerializer):
-    link = serializers.CharField(validators=[link_validate])
+    #link = serializers.CharField(validators=[link_validate])
 
     class Meta:
         model = Lessons
         fields = '__all__'
+        validators = [LinkValidator(field='link')]
 
 
 class CourseSerializer(serializers.ModelSerializer):
