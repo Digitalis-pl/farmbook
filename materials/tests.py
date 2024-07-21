@@ -1,4 +1,6 @@
 from django.urls import reverse
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from rest_framework import status
@@ -9,6 +11,7 @@ from users.models import User
 from materials.models import Course, Lessons
 
 from payments.models import Subscription, Payments
+from users.permissions import IsModer
 
 
 # Create your tests here.
@@ -20,6 +23,7 @@ class CourseTestCase(APITestCase):
         self.user = User.objects.create(email="test@mail.ru")
         self.course = Course.objects.create(name="test", owner=self.user)
         self.client.force_authenticate(user=self.user)
+        self.ct = ContentType.objects.get_for_model(Course)
 
     def test_course_retrieve(self):
         url = reverse('materials:course-detail', args=(self.course.pk,))
@@ -30,6 +34,28 @@ class CourseTestCase(APITestCase):
         )
         self.assertEqual(
             data.get("name"), self.course.name
+        )
+
+    def test_course_access_not_owner_retrieve_(self):
+        self.course = Course.objects.create(name="test")
+        self.user = User.objects.create(email="test2@mail.ru")
+        url = reverse('materials:course-detail', args=(self.course.pk,))
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )
+
+    def test_course_access_for_moder_retrieve_(self):
+        self.course = Course.objects.create(name="test")
+        self.user = User.objects.create(email="test2@mail.ru")
+        group = Group.objects.create(name='moders')
+        group.permissions.add(Permission.objects.get(codename='view_course').id)
+        group.user_set.add(self.user)
+        self.client.force_authenticate(user=self.user)
+        url = reverse('materials:course-detail', args=(self.course.pk,))
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
         )
 
     def test_course_create(self):
@@ -134,6 +160,28 @@ class LessonTestCase(APITestCase):
             data.get("name"), self.lesson.name
         )
 
+    def test_lesson_access_not_owner_retrieve_(self):
+        self.lesson = Lessons.objects.create(name="test")
+        self.user = User.objects.create(email="test2@mail.ru")
+        url = reverse('materials:lesson_detail', args=(self.lesson.pk,))
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )
+
+    def test_lesson_access_for_moder_retrieve_(self):
+        self.course = Lessons.objects.create(name="test")
+        self.user = User.objects.create(email="test2@mail.ru")
+        group = Group.objects.create(name='moders')
+        group.permissions.add(Permission.objects.get(codename='view_lessons').id)
+        group.user_set.add(self.user)
+        self.client.force_authenticate(user=self.user)
+        url = reverse('materials:lesson_detail', args=(self.course.pk,))
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+
     def test_lesson_create(self):
         url = reverse('materials:lesson_create')
         data = {
@@ -161,6 +209,37 @@ class LessonTestCase(APITestCase):
             data.get("name"), "test2"
         )
 
+    def test_lesson_moder_update(self):
+        self.course = Lessons.objects.create(name="test")
+        self.user = User.objects.create(email="test2@mail.ru")
+        group = Group.objects.create(name='moders')
+        group.permissions.add(Permission.objects.get(codename='view_lessons').id)
+        group.user_set.add(self.user)
+        self.client.force_authenticate(user=self.user)
+        url = reverse('materials:lesson_update', args=(self.lesson.pk,))
+        data = {
+            "name": "test2"
+        }
+        response = self.client.patch(url, data)
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK
+        )
+        self.assertEqual(
+            data.get("name"), "test2"
+        )
+
+    def test_lesson_simple_user_update(self):
+        self.lesson = Lessons.objects.create(name="test")
+        self.user = User.objects.create(email="test2@mail.ru")
+        url = reverse('materials:lesson_update', args=(self.lesson.pk,))
+        data = {
+            "name": "test2"
+        }
+        response = self.client.patch(url, data)
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )
+
     def test_lesson_delete(self):
         url = reverse('materials:lesson_delete', args=(self.lesson.pk,))
         response = self.client.delete(url)
@@ -169,6 +248,19 @@ class LessonTestCase(APITestCase):
         )
         self.assertEqual(
             Lessons.objects.all().count(), 0
+        )
+
+    def test_lesson_moder_delete(self):
+        self.course = Lessons.objects.create(name="test")
+        self.user = User.objects.create(email="test2@mail.ru")
+        group = Group.objects.create(name='moders')
+        group.permissions.add(Permission.objects.get(codename='view_lessons').id)
+        group.user_set.add(self.user)
+        self.client.force_authenticate(user=self.user)
+        url = reverse('materials:lesson_delete', args=(self.lesson.pk,))
+        response = self.client.delete(url)
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
         )
 
     def test_lesson_list(self):
@@ -302,7 +394,6 @@ class PaymentTestCase(APITestCase):
             "payment_method": "card"
         }
         response = self.client.post(url, data)
-        print(response.json())
         self.assertEqual(
             response.status_code, status.HTTP_201_CREATED
         )
