@@ -32,7 +32,11 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         return [lesson.name for lesson in Lessons.objects.filter(course=course.pk)]
 
     def get_subscribe(self, course):
-        return {"subscribe": "вы подписаны на этот курс"}
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+        return Subscription.objects.filter(course=course.pk, user=user.pk).values()
 
     class Meta:
         model = Course

@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import filters
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -27,7 +28,7 @@ class PaymentsViewSet(ModelViewSet):
 
 
 class SubscriptionController(APIView):
-    permission_classes = [IsOwner]
+    permission_classes = [IsAuthenticated]
 
     def post(self, *args, **kwargs):
         user = self.request.user
