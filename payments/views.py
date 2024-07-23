@@ -33,6 +33,8 @@ class PaymentsViewSet(ModelViewSet):
         products = payment.course.values()
         prod_data = {}
         for index, prod in enumerate(products):
+            '''Можно ли как то обойти ограничения по добавлению в метаданные только строк,
+             например чтобы содержать там полезную информацию о приобретенных товарах?'''
             #prod_data['product' + str(index)] = {'id': prod['id'], 'name': prod['name'], 'price': prod['price']}
             #prod_data['product' + str(index)] = prod['name']
             prod_data['product' + str(index)] = prod['id']
@@ -55,6 +57,8 @@ class PaymentsViewSet(ModelViewSet):
 
 
    # def retrieve(self, request, *args, **kwargs):
+'''Можно ли использовать подобный подход или дополнительные поля мы можем
+ добавлять только через прописывание дополнительного сериализатора?'''
    #     instance = self.get_object()
    #     print(f'this inst - {instance}')
    #     serializer = self.get_serializer(instance)
