@@ -12,6 +12,7 @@ class Course(models.Model):
     preview = models.ImageField(upload_to='materials/materials_preview', verbose_name='Изображение', **null_options)
     description = models.TextField(verbose_name='Описание', **null_options)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, **null_options, verbose_name='Создатель')
+    price = models.IntegerField(verbose_name='Цена курса', **null_options)
 
     class Meta:
         verbose_name = 'Курс'
@@ -28,6 +29,7 @@ class Lessons(models.Model):
     link = models.URLField(verbose_name='Ссылка на видео', **null_options)
     course = models.ForeignKey('Course', on_delete=models.SET_NULL, verbose_name='Курс', **null_options)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, **null_options, verbose_name='Создатель')
+    price = models.IntegerField(verbose_name='Цена урока', **null_options)
 
     class Meta:
         verbose_name = 'Урок'

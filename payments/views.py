@@ -10,7 +10,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from materials.models import Course
 from payments.models import Payments
-from payments.serializers import PaymentsSerializer
+from payments.serializers import PaymentsSerializer, PaymentsDetailSerializer
+from payments.services import convert_rub_to_usd, create_price, create_session, create_product, check_sessions
 from users.permissions import IsOwner
 
 from payments.models import Subscription
@@ -26,6 +27,44 @@ class PaymentsViewSet(ModelViewSet):
     ordering_fields = ('date',)
     filterset_fields = ('course', 'lesson', 'payment_method',)
 
+    def perform_create(self, serializer):
+        payment = serializer.save(user=self.request.user)
+        amount = 0
+        products = payment.course.values()
+        prod_data = {}
+        for index, prod in enumerate(products):
+            '''Можно ли как то обойти ограничения по добавлению в метаданные только строк,
+             например чтобы содержать там полезную информацию о приобретенных товарах?'''
+            #prod_data['product' + str(index)] = {'id': prod['id'], 'name': prod['name'], 'price': prod['price']}
+            #prod_data['product' + str(index)] = prod['name']
+            prod_data['product' + str(index)] = prod['id']
+            amount += prod['price']
+        #amount_in_usd = convert_rub_to_usd(amount)
+        product = create_product('payment', prod_data)
+        print(product)
+        price = create_price(amount, product)
+        print(price)
+        print(amount)
+        session_id, payment_link = create_session(len(prod_data), price)
+        payment.session_id = session_id
+        payment.link = payment_link
+        payment.save()
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PaymentsDetailSerializer
+        return PaymentsSerializer
+
+
+   # def retrieve(self, request, *args, **kwargs):
+'''Можно ли использовать подобный подход или дополнительные поля мы можем
+ добавлять только через прописывание дополнительного сериализатора?'''
+   #     instance = self.get_object()
+   #     print(f'this inst - {instance}')
+   #     serializer = self.get_serializer(instance)
+   #     serializer.data['session_params'] = check_sessions(instance.session_id)
+   #     print(f'this ser - {serializer.data}')
+   #     return Response(serializer.data)
 
 class SubscriptionController(APIView):
     permission_classes = [IsAuthenticated]
