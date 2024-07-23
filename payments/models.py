@@ -9,12 +9,14 @@ null_options = {'blank': True, 'null': True}
 
 
 class Payments(models.Model):
+    session_id = models.CharField(max_length=200,verbose_name='id сессии', **null_options)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name='Клиент', **null_options)
     date = models.DateField(**null_options, verbose_name='дата оплаты')
     course = models.ManyToManyField(Course, **null_options, verbose_name='оплаченный курс')
     lesson = models.ManyToManyField(Lessons, **null_options, verbose_name='оплаченный урок')
     payments_summ = models.IntegerField(default=0, verbose_name='Сумма оплаты')
     payment_method = models.CharField(max_length=100, verbose_name='Способ оплаты')
+    link = models.URLField(max_length=400, verbose_name='Ссылка на оплату', **null_options)
 
     class Meta:
         verbose_name = 'Оплаты'
