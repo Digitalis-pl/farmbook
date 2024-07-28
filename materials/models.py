@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 from users.models import User
@@ -13,6 +15,7 @@ class Course(models.Model):
     description = models.TextField(verbose_name='Описание', **null_options)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, **null_options, verbose_name='Создатель')
     price = models.IntegerField(verbose_name='Цена курса', **null_options)
+    update_date = models.DateTimeField(default=datetime.datetime.now(), verbose_name='Дата последнего обновления', **null_options)
 
     class Meta:
         verbose_name = 'Курс'
@@ -30,6 +33,7 @@ class Lessons(models.Model):
     course = models.ForeignKey('Course', on_delete=models.SET_NULL, verbose_name='Курс', **null_options)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, **null_options, verbose_name='Создатель')
     price = models.IntegerField(verbose_name='Цена урока', **null_options)
+    update_date = models.DateTimeField(default=datetime.datetime.now(), verbose_name='Дата последнего обновления', **null_options)
 
     class Meta:
         verbose_name = 'Урок'

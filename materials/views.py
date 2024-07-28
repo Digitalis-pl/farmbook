@@ -1,5 +1,8 @@
+import datetime
+
 from django.shortcuts import render
 
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import (ListAPIView, CreateAPIView,
                                      UpdateAPIView, DestroyAPIView,
@@ -11,6 +14,8 @@ from materials.serializers import CourseSerializer, LessonSerializer, CourseDeta
 from materials.paginators import CustomPagination
 
 from users.permissions import IsModer, IsOwner, IsSubscriber
+
+from .tasks import send_news
 
 
 class CourseViewSet(ModelViewSet):
@@ -37,6 +42,27 @@ class CourseViewSet(ModelViewSet):
             self.permission_classes = (~IsModer | IsOwner,)
 
         return super().get_permissions()
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        print(f'this is - {instance.pk}')
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        send_news(instance.pk, instance.name)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        course = serializer.save()
+        course.update_date = datetime.datetime.now()
+        course.save()
 
 
 class LessonCreateAPIView(CreateAPIView):
@@ -66,6 +92,27 @@ class LessonUpdateAPIView(UpdateAPIView):
     queryset = Lessons.objects.all()
     serializer_class = LessonSerializer
     permission_classes = (IsAuthenticated, IsModer | IsOwner)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        send_news(instance.course, instance.course.name, instance.name)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        lesson = serializer.save()
+        lesson.update_date = datetime.datetime.now()
+        lesson.save()
+
 
 
 class LessonDeleteAPIView(DestroyAPIView):

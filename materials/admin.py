@@ -7,7 +7,7 @@ from materials.models import Course, Lessons
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'owner',)
+    list_display = ('id', 'name', 'owner', 'update_date')
 
 
 @admin.register(Lessons)
