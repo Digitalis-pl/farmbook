@@ -9,6 +9,7 @@ from payments.models import Subscription
 from users.models import User
 from .models import Course
 
+
 @shared_task
 def send_news(course_pk, course, lesson=None):
     all_subs = Subscription.objects.filter(course=course_pk).values()
