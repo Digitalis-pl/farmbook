@@ -50,7 +50,7 @@ class CourseViewSet(ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        send_news(instance.pk, instance.name)
+        send_news.delay(instance.pk, instance.name)
 
         if getattr(instance, '_prefetched_objects_cache', None):
             # If 'prefetch_related' has been applied to a queryset, we need to
@@ -99,7 +99,7 @@ class LessonUpdateAPIView(UpdateAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        send_news(instance.course, instance.course.name, instance.name)
+        send_news.delay(instance.course, instance.course.name, instance.name)
 
         if getattr(instance, '_prefetched_objects_cache', None):
             # If 'prefetch_related' has been applied to a queryset, we need to
